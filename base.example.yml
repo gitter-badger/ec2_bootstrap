@@ -1,0 +1,18 @@
+---
+cloud_config:
+  manage_etc_hosts: true
+  bootcmd:
+    - echo "search domain.com" > /etc/resolv.conf
+    - echo "nameserver X.X.X.X" >> /etc/resolv.conf
+knife_ec2_flags:
+    ebs-size: 10
+    environment: production
+    flavor: m4.large
+    iam-profile: iam-role
+    identity-file: ~/.ssh/ssh_key.pem
+    image: ami-12345678
+    run-list: recipe[recipe1],recipe[recipe2]
+    secret-file: /path/to/chef/data_bag_secret
+    server-url: https://chef.server.url.com
+    ssh-key: password
+    ssh-user: user

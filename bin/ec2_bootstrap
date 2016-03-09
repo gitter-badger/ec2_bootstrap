@@ -1,0 +1,36 @@
+#!/usr/bin/env ruby
+lib = File.expand_path('../../lib', __FILE__)
+$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+
+require 'optparse'
+require 'ec2_bootstrap'
+
+options = {
+	dryrun: true
+}
+
+OptionParser.new do |opts|
+	opts.banner = 'Usage: ec2_bootstrap -c CONFIG_FILE [options]'
+
+	opts.on('-c', '--config CONFIG_FILE',
+		'Path to custom instance config') do |file|
+			options[:config] = file
+	end
+
+	opts.on('-b', '--base BASE_CONFIG_FILE',
+		'Path to base config') do |file|
+			options[:base_config] = file
+	end
+
+	opts.on('-d', '--[no-]dryrun',
+		'Print out changes without actually creating a new EC2 instance		(default: true)') do |dryrun|
+			options[:dryrun] = dryrun
+	end
+end.parse!
+
+unless options[:config]
+	puts "You must specify a config file!"
+	exit 1
+end
+
+EC2Bootstrap.new(options[:config], options[:dryrun], options[:base_config]).create_instance
