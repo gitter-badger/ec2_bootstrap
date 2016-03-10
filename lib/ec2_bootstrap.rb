@@ -68,7 +68,4 @@ class EC2Bootstrap
 			puts "status", status
 		end
 	end
-
-  # "--security-group-ids #{knife_config_data[:security_group_ids].join(',')}"
-  # TODO: make the commas explicit in knife config example.yml
 end
