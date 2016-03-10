@@ -41,9 +41,6 @@ actually creating the instance.
 	# runs ec2_bootstrap in dryrun mode
 	$ bundle exec bin/ec2_bootstrap -c CONFIG_FILE --no-dryrun
 	# runs ec2_bootstrap and actually creates a new EC2 instance
-	$ bundle exec bin/ec2_bootstrap -c CONFIG_FILE -b BASE_CONFIG
-	# runs ec2_bootstrap using BASE_CONFIG as the base config instead of the
-	# default `base.yml`
 
 ## Contributing
 

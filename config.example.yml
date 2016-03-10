@@ -1,11 +1,26 @@
 ---
-name: foo
-domain: domain.com
-knife_ec2_flags:
-    availability-zone: us-east-1d
-    ebs-size: 30
-    environment: testing
-    private-ip-address: X.X.X.X
-    run-list: recipe[recipe1]
-    security-group-ids: sg-12345678,sg-abcdef01
-    subnet: subnet-12345678
+cloud_config:
+  manage_etc_hosts: true
+  bootcmd:
+    - echo "search domain.com" > /etc/resolv.conf
+    - echo "nameserver X.X.X.X" >> /etc/resolv.conf
+nodes:
+    foo:
+        domain: domain.com
+        json_attributes: json_file.json
+        knife_ec2_flags:
+            availability-zone: us-east-1d
+            ebs-size: 30
+            environment: testing
+            flavor: m4.large
+            iam-profile: iam-role
+            identity-file: ~/.ssh/ssh_key.pem
+            image: ami-12345678
+            private-ip-address: X.X.X.X
+            run-list: recipe[recipe1]
+            secret-file: /path/to/chef/data_bag_secret
+            security-group-ids: sg-12345678,sg-abcdef01
+            server-url: https://chef.server.url.com
+            ssh-key: password
+            ssh-user: user
+            subnet: subnet-12345678

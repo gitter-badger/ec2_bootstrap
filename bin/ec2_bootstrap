@@ -17,20 +17,17 @@ OptionParser.new do |opts|
 			options[:config] = file
 	end
 
-	opts.on('-b', '--base BASE_CONFIG_FILE',
-		'Path to base config') do |file|
-			options[:base_config] = file
-	end
-
 	opts.on('-d', '--[no-]dryrun',
 		'Print out changes without actually creating a new EC2 instance		(default: true)') do |dryrun|
 			options[:dryrun] = dryrun
 	end
 end.parse!
 
-unless options[:config]
+config_file = options.delete(:config)
+
+unless config_file
 	puts "You must specify a config file!"
 	exit 1
 end
 
-EC2Bootstrap.new(options[:config], options[:dryrun], options[:base_config]).create_instance
+EC2Bootstrap.new(config_file, options[:dryrun]).create_instance

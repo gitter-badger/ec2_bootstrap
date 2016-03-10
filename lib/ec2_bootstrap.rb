@@ -1,10 +1,9 @@
 require 'yaml'
+require 'json'
 require 'open3'
 require 'ec2_bootstrap/version'
 
 class EC2Bootstrap
-
-	DEFAULT_CONFIG_PATH = 'base.yml'
 
 	CLOUD_CONFIG_PATH = 'cloud_config.txt'
 
@@ -15,30 +14,29 @@ class EC2Bootstrap
 		'user-data'			 => CLOUD_CONFIG_PATH
 	}
 
-	def initialize(custom_config_path, dryrun=true, default_config=nil)
-		@default_config = YAML.load(File.read(default_config || DEFAULT_CONFIG_PATH))
-		@custom_config = YAML.load(File.read(custom_config_path))
+	def initialize(config_path, dryrun=true)
+		@config = YAML.load(File.read(config_path))
+		@node_name = @config['nodes'].keys.first
+		@node_config = @config['nodes'][@node_name]
 
 		@dryrun = dryrun
 
-		@node_name = @custom_config['name']
-		@domain = @custom_config['domain']
-
-		@knife_config = build_knife_config
+		@knife_flags = build_knife_flags()
 	end
 
-	def build_knife_config
-		knife_config = @default_config['knife_ec2_flags'].merge(@custom_config['knife_ec2_flags'])
+	def build_knife_flags
+		knife_config = @node_config['knife_ec2_flags']
 		additional_knife_config = ADDITIONAL_KNIFE_FLAGS.dup
 		additional_knife_config['node-name'] = @node_name
 		additional_knife_config['tags'] = "Name=#{@node_name}"
+		additional_knife_config['json-attribute-file'] = @node_config['json_attributes'] if @node_config['json_attributes']
 		return knife_config.merge(additional_knife_config)
 	end
 
 	def write_cloud_config
-		cloud_config = @default_config['cloud_config']
+		cloud_config = @config['cloud_config']
 		cloud_config['hostname'] = @node_name
-		cloud_config['fqdn'] = "#{@node_name}.#{@domain}"
+		cloud_config['fqdn'] = "#{@node_name}.#{@node_config['domain']}"
 		formatted_cloud_config = cloud_config.to_yaml.gsub('---', '#cloud-config')
 
 		if @dryrun
@@ -52,7 +50,7 @@ class EC2Bootstrap
 
 	def knife_shell_command
 		prefix = 'knife ec2 server create '
-		knife_flag_array = @knife_config.map {|key, value| ['--' + key, value]}.flatten.compact
+		knife_flag_array = @knife_flags.map {|key, value| ['--' + key, value]}.flatten.compact
 		return prefix + knife_flag_array.join(' ')
 	end
 
