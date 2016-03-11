@@ -65,10 +65,15 @@ class EC2Bootstrap
 			puts 'Knife shell command:', knife_shell_command, "\n"
 			
 			unless @dryrun
-				stdout, stderr, status = Open3::capture3(knife_shell_command)
-				puts "stdout", stdout
-				puts "stderr", stderr
-				puts "status", status
+				STDOUT.sync = true
+				Open3::popen2e(knife_shell_command) do |stdin, stdout_and_stderr, wait_thr|
+					puts "stdout and stderr"
+					while (line = stdout_and_stderr.gets) do
+						puts line
+					end
+					status = wait_thr.value
+					puts "status", status
+				end
 			end
 		end
 	end
