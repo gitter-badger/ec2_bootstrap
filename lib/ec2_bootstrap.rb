@@ -12,17 +12,17 @@ class EC2Bootstrap
 		@dryrun = dryrun
 	end
 
-	def build_knife_config(node, cloud_config_path)
+	def build_knife_config(node)
 		knife_config = node['knife_ec2_flags']
 		node_name = node['node_name']
 
 		additional_knife_config = {
 			'node-name' => node_name,
 			'tags' => "Name=#{node_name}",
-			'user-data' => cloud_config_path
 		}
 
-		return knife_config.merge(additional_knife_config)
+		node['knife_ec2_flags'] = knife_config.merge(additional_knife_config)
+		return node
 	end
 
 	def format_knife_shell_command(knife_flags)
@@ -31,7 +31,7 @@ class EC2Bootstrap
 		return prefix + knife_flag_array.join(' ')
 	end
 
-	def write_cloud_config(node)
+	def generate_cloud_config(node)
 		cloud_config = @config['cloud_config']
 		node_name = node['node_name']
 
@@ -49,7 +49,8 @@ class EC2Bootstrap
 			puts "Wrote cloud config to #{cloud_config_path}."
 		end
 
-		return cloud_config_path
+		node['knife_ec2_flags']['user-data'] = cloud_config_path
+		return node
 	end
 
 	def create_instances
@@ -58,10 +59,11 @@ class EC2Bootstrap
 		@nodes.each do |node|
 			puts "Node name: #{node['node_name']}"
 
-			cloud_config_path = self.write_cloud_config(node)
+			node = self.build_knife_config(node)
 
-			knife_config = self.build_knife_config(node, cloud_config_path)
-			knife_shell_command = self.format_knife_shell_command(knife_config)
+			node = self.generate_cloud_config(node) if @config['cloud_config']
+
+			knife_shell_command = self.format_knife_shell_command(node['knife_ec2_flags'])
 			puts 'Knife shell command:', knife_shell_command, "\n"
 			
 			unless @dryrun
