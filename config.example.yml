@@ -5,9 +5,8 @@ cloud_config:
     - echo "search domain.com" > /etc/resolv.conf
     - echo "nameserver X.X.X.X" >> /etc/resolv.conf
 nodes:
-    foo:
+    -   node_name: foo
         domain: domain.com
-        json_attributes: json_file.json
         knife_ec2_flags:
             availability-zone: us-east-1d
             ebs-size: 30
@@ -16,6 +15,7 @@ nodes:
             iam-profile: iam-role
             identity-file: ~/.ssh/ssh_key.pem
             image: ami-12345678
+            json-attribute-file: json_file.json
             private-ip-address: X.X.X.X
             run-list: recipe[recipe1]
             secret-file: /path/to/chef/data_bag_secret

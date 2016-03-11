@@ -30,4 +30,4 @@ unless config_file
 	exit 1
 end
 
-EC2Bootstrap.new(config_file, options[:dryrun]).create_instance
+EC2Bootstrap.new(config_file, options[:dryrun]).create_instances
