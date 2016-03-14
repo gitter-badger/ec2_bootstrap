@@ -4,8 +4,8 @@ cloud_config:
   bootcmd:
     - echo "search domain.com" > /etc/resolv.conf
     - echo "nameserver X.X.X.X" >> /etc/resolv.conf
-nodes:
-    -   node_name: foo
+instances:
+    -   instance_name: foo
         domain: domain.com
         knife_ec2_flags:
             availability-zone: us-east-1d
