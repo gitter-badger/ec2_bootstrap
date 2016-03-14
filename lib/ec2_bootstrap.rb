@@ -6,14 +6,22 @@ require 'ec2_bootstrap/instance'
 
 class EC2Bootstrap
 
-	def initialize(config_path, dryrun=true)
-		config = YAML.load(File.read(config_path))
+	def initialize(config, dryrun=true)
 		@cloud_config = config['cloud_config']
-
-		instances_config = config['instances'].map {|i| i.map {|key, value| [key.to_sym, value]}.to_h}
-		@instances = instances_config.map {|n| Instance.new(n)}
+		@instances = config['instances'].map {|n| Instance.new(n)}
 
 		@dryrun = dryrun
+	end
+
+	def self.from_config(config_path, dryrun)
+		config = YAML.load(File.read(config_path))
+
+		instances = config['instances']
+		raise KeyError, "Config file is missing 'instances' key." unless instances
+		raise TypeError, "'instances' config must be an array of hashes." unless instances.is_a?(Array) && instances.first.is_a?(Hash)
+		config['instances'] = instances.map {|i| i.map {|key, value| [key.to_sym, value]}.to_h}
+
+		return self.new(config, dryrun)
 	end
 
 	def create_instances

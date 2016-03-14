@@ -4,7 +4,7 @@ class EC2Bootstrap
 		attr_accessor :name
 		attr_accessor :knife_ec2_flags
 
-		def initialize(instance_name:, domain:, knife_ec2_flags:)
+		def initialize(instance_name:, knife_ec2_flags:, domain: nil)
 			@name = instance_name
 			@domain = domain
 
@@ -24,7 +24,7 @@ class EC2Bootstrap
 
 		def generate_cloud_config(cloud_config, dryrun)
 			cloud_config['hostname'] = @name
-			cloud_config['fqdn'] = "#{@name}.#{@domain}"
+			cloud_config['fqdn'] = "#{@name}.#{@domain}" if @domain
 
 			formatted_cloud_config = cloud_config.to_yaml.gsub('---', '#cloud-config')
 			cloud_config_path = "cloud_config_#{@name}.txt"
