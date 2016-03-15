@@ -33,11 +33,15 @@ class EC2Bootstrap
 				puts "If this weren't a dry run, I would write the following contents to #{cloud_config_path}:"
 				puts formatted_cloud_config, "\n"
 			else
-				File.open(cloud_config_path, 'w') {|f| f.write(formatted_cloud_config)}
+				self.write_cloud_config_to_file(cloud_config_path, formatted_cloud_config)
 				puts "Wrote cloud config to #{cloud_config_path}."
 			end
 
 			@knife_ec2_flags['user-data'] = cloud_config_path
+		end
+
+		def write_cloud_config_to_file(path, contents)
+			File.open(path, 'w') {|f| f.write(contents)}
 		end
 
 	end
