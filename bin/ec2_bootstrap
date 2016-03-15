@@ -6,7 +6,8 @@ require 'optparse'
 require 'ec2_bootstrap'
 
 options = {
-	dryrun: true
+	dryrun: true,
+	verbose: false
 }
 
 OptionParser.new do |opts|
@@ -21,6 +22,11 @@ OptionParser.new do |opts|
 		'Print out changes without actually creating a new EC2 instance		(default: true)') do |dryrun|
 			options[:dryrun] = dryrun
 	end
+
+	opts.on('-v', '--[no-]verbose',
+		'Run in verbose mode		(default: false)') do |verbose|
+			options[:verbose] = verbose
+	end
 end.parse!
 
 config_file = options.delete(:config)
@@ -30,4 +36,4 @@ unless config_file
 	exit 1
 end
 
-EC2Bootstrap.from_config(config_file, options[:dryrun]).create_instances
+EC2Bootstrap.from_config(config_file, options[:dryrun], options[:verbose]).create_instances

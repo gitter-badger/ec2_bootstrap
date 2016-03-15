@@ -1,12 +1,15 @@
+require 'json'
+
 class EC2Bootstrap
 	class Instance
 
 		attr_accessor :name
 		attr_accessor :knife_ec2_flags
 
-		def initialize(instance_name:, knife_ec2_flags:, domain: nil)
+		def initialize(instance_name:, knife_ec2_flags:, logger:, domain: nil)
 			@name = instance_name
 			@domain = domain
+			@logger = logger
 
 			additional_knife_flags = {
 				'node-name' => @name,
@@ -30,11 +33,11 @@ class EC2Bootstrap
 			cloud_config_path = "cloud_config_#{@name}.txt"
 
 			if dryrun
-				puts "If this weren't a dry run, I would write the following contents to #{cloud_config_path}:"
-				puts formatted_cloud_config, "\n"
+				msg = "If this weren't a dry run, I would write the following contents to #{cloud_config_path}:\n#{formatted_cloud_config}"
+				@logger.debug(msg)
 			else
 				self.write_cloud_config_to_file(cloud_config_path, formatted_cloud_config)
-				puts "Wrote cloud config to #{cloud_config_path}."
+				@logger.debug("Wrote cloud config to #{cloud_config_path}.")
 			end
 
 			@knife_ec2_flags['user-data'] = cloud_config_path
