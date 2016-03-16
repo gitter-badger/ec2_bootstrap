@@ -10,11 +10,18 @@ describe 'EC2Bootstrap::Instance' do
 		}
 	end
 
+	let(:logger) do
+		logger = Logger.new(STDOUT)
+		logger.level = Logger::WARN
+		logger
+	end
+
 	let(:instance) do
 		EC2Bootstrap::InstanceMock.new(
 			instance_name: 'pumpkin',
 			domain: 'chocolate.muffins.com',
-			knife_ec2_flags: knife_flags_hash
+			knife_ec2_flags: knife_flags_hash,
+			logger: logger
 		)
 	end
 

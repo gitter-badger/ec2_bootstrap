@@ -8,7 +8,7 @@ class EC2BootstrapMock < EC2Bootstrap
 	end
 
 	def make_instances(instances_config)
-		return instances_config.map {|i| InstanceMock.new(i)}
+		return instances_config.map {|i| InstanceMock.new(i.merge(logger: @logger))}
 	end
 
 	def shell_out_command(command)
@@ -23,6 +23,10 @@ class EC2Bootstrap
 
 		def write_cloud_config_to_file(path, content)
 			return content.bytesize
+		end
+
+		def load_json_attributes(json)
+			return json
 		end
 
 	end

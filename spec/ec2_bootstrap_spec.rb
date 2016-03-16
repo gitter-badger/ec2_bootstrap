@@ -16,6 +16,7 @@ describe 'EC2Bootstrap' do
 				},
 				{
 					'instance_name' => 'mouse',
+					'json_attributes_file' => {},
 					'knife_ec2_flags' => {}
 				},
 				{

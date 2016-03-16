@@ -6,17 +6,30 @@ class EC2Bootstrap
 		attr_accessor :name
 		attr_accessor :knife_ec2_flags
 
-		def initialize(instance_name:, knife_ec2_flags:, logger:, domain: nil)
+		def initialize(instance_name:, knife_ec2_flags:, logger:, domain: nil, json_attributes_file:nil)
 			@name = instance_name
-			@domain = domain
+			@json_attributes_file = json_attributes_file
+			@knife_ec2_flags = build_knife_ec2_flags_hash(knife_ec2_flags)
 			@logger = logger
+			@domain = domain
+		end
+
+		def build_knife_ec2_flags_hash(knife_ec2_flags)
+			knife_ec2_flags['json-attributes'] = "'#{self.load_json_attributes(@json_attributes_file)}'" if @json_attributes_file
 
 			additional_knife_flags = {
 				'node-name' => @name,
 				'tags' => "Name=#{@name}"
 			}
 
-			@knife_ec2_flags = knife_ec2_flags.merge(additional_knife_flags)
+			return knife_ec2_flags.merge(additional_knife_flags)
+		end
+
+		# Load the JSON and then dump it back out to ensure it's valid JSON.
+		# Also makes the JSON easier to read when printing out the command in
+		# verbose mode by removing all newlines.
+		def load_json_attributes(file_path)
+			return JSON.dump(JSON.load(File.read(file_path)))
 		end
 
 		def format_knife_shell_command
