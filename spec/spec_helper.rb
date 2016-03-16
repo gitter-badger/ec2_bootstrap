@@ -3,12 +3,8 @@ require 'rspec'
 
 class EC2BootstrapMock < EC2Bootstrap
 
-	def self.load_config_from_yaml(config)
-		return config
-	end
-
-	def make_instances(instances_config)
-		return instances_config.map {|i| InstanceMock.new(i.merge(logger: @logger))}
+	def instance_class
+		return InstanceMock
 	end
 
 	def shell_out_command(command)
@@ -18,7 +14,6 @@ class EC2BootstrapMock < EC2Bootstrap
 end
 
 class EC2Bootstrap
-
 	class InstanceMock < Instance
 
 		def write_cloud_config_to_file(path, content)
@@ -30,7 +25,6 @@ class EC2Bootstrap
 		end
 
 	end
-
 end
 
 RSpec.configure do |config|

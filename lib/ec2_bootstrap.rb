@@ -20,9 +20,7 @@ class EC2Bootstrap
 		@dryrun = dryrun
 	end
 
-	def self.from_config(config_path, *args)
-		config = self.load_config_from_yaml(config_path)
-
+	def self.from_config(config, *args)
 		instances = config['instances']
 		raise KeyError, "Config file is missing 'instances' key." unless instances
 		raise TypeError, "'instances' config must be an array of hashes." unless instances.is_a?(Array) && instances.first.is_a?(Hash)
@@ -31,12 +29,18 @@ class EC2Bootstrap
 		return self.new(config, *args)
 	end
 
-	def self.load_config_from_yaml(config_path)
-		return YAML.load(File.read(config_path))
+	def self.from_config_file(config_path, *args)
+		config = YAML.load(File.read(config_path))
+
+		self.from_config(config, *args)
 	end
 
 	def make_instances(instances_config)
-		return instances_config.map {|i| Instance.new(i.merge(logger: @logger))}
+		return instances_config.map {|i| self.instance_class.new(i.merge(logger: @logger))}
+	end
+
+	def instance_class
+		return Instance
 	end
 
 	def create_instances
