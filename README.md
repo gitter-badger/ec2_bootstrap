@@ -33,7 +33,7 @@ For any `knife_EC2_flags` values that are lists, they need to be formatted as on
 
 ## Usage
 
-	$ bundle exec bin/ec2_bootstrap -c CONFIG_FILE [options]
+	$ bundle exec ec2_bootstrap -c CONFIG_FILE [options]
 
 Passing in a config file with `-c` is required.
 
@@ -41,17 +41,22 @@ By default, `ec2_bootstrap` is set to dryrun mode, where `ec2_bootstrap` will
 print out what config would be used to create a new EC2 instance without
 actually creating the instance.
 
-	$ bundle exec bin/ec2_bootstrap --help
+	$ bundle exec ec2_bootstrap --help
 	# help menu
-	$ bundle exec bin/ec2_bootstrap -c CONFIG_FILE
+	$ bundle exec ec2_bootstrap -c CONFIG_FILE
 	# runs ec2_bootstrap in dryrun mode
-	$ bundle exec bin/ec2_bootstrap -c CONFIG_FILE --no-dryrun
+	$ bundle exec ec2_bootstrap -c CONFIG_FILE --no-dryrun
 	# runs ec2_bootstrap and actually creates a new EC2 instance
+	$ bundle exec ec2_bootstrap -c CONFIG_CILE -v
+	# runs ec2_bootstrap in verbose mode
 
 ## Contributing
 
 1. Fork it ( https://github.com/[my-github-username]/ec2_bootstrap/fork )
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create a new Pull Request
+2. Install dependencies (`bundle install`)
+3. Create your feature branch (`git checkout -b my-new-feature`)
+4. Make your changes.
+5. Run the tests and make sure they pass (`bundle exec rspec`)
+6. Commit your changes (`git commit -am 'Add some feature'`)
+7. Push to the branch (`git push origin my-new-feature`)
+8. Create a new pull request.

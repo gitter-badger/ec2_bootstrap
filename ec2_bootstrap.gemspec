@@ -6,14 +6,16 @@ require 'ec2_bootstrap/version'
 Gem::Specification.new do |spec|
   spec.name          = "ec2_bootstrap"
   spec.version       = Ec2Bootstrap::VERSION
-  spec.authors       = ["Rachel King"]
-  spec.email         = ["rachel@cozy.co"]
+  spec.authors       = ["Cozy Services Ltd.", "Rachel King"]
+  spec.email         = ["opensource@cozy.co"]
   spec.summary       = %q{Bootstrap EC2 instances with custom config.}
   spec.description   = %q{Bootstrap EC2 instances with custom config.}
-  spec.homepage      = ""
+  spec.homepage      = "https://github.com/CozyCo/ec2_bootstrap"
   spec.license       = "MIT"
 
-  spec.files         = `git ls-files -z`.split("\x0")
+  spec.files         = Dir[ '{lib,spec}/**/*.rb' ] +
+                       Dir[ 'Rakefile', 'LICENSE.txt', 'README.md' ] +
+                       Dir[ 'bin/*' ]
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
