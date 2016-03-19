@@ -6,7 +6,9 @@ describe 'EC2Bootstrap::Instance' do
 		{
 			'availability-zone' => 'us-east-1a',
 			'environment' => 'production',
-			'flavor' => 'm4.large'
+			'flavor' => 'm4.large',
+			'image' => 'ami-12345678',
+			'private-ip-address' => '255.255.255.255'
 		}
 	end
 

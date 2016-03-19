@@ -3,6 +3,10 @@ require 'rspec'
 
 class EC2BootstrapMock < EC2Bootstrap
 
+	def find_newest_image_id(owner_ids)
+		return 'ami-888888888'
+	end
+
 	def instance_class
 		return InstanceMock
 	end

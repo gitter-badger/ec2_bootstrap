@@ -1,28 +1,37 @@
 require 'json'
+require 'aws-sdk'
 
 class EC2Bootstrap
 	class Instance
 
+		REQUIRED_KNIFE_EC2_FLAGS = ['image', 'private-ip-address']
+
 		attr_accessor :name
 		attr_accessor :knife_ec2_flags
 
-		def initialize(instance_name:, knife_ec2_flags:, logger:, domain: nil, json_attributes_file:nil)
+		def initialize(instance_name:, knife_ec2_flags:, logger:, domain: nil, json_attributes_file:nil, image: nil)
 			@name = instance_name
 			@json_attributes_file = json_attributes_file
+			@image = image
 			@knife_ec2_flags = build_knife_ec2_flags_hash(knife_ec2_flags)
 			@logger = logger
 			@domain = domain
 		end
 
 		def build_knife_ec2_flags_hash(knife_ec2_flags)
-			knife_ec2_flags['json-attributes'] = "'#{self.load_json_attributes(@json_attributes_file)}'" if @json_attributes_file
+			knife_ec2_flags['json-attributes'] = "'#{self.load_json_attributes(@json_attributes_file)}'" if @json_attributes_file and not knife_ec2_flags['json-attributes']
+			knife_ec2_flags['image'] = @image unless knife_ec2_flags['image']
 
 			additional_knife_flags = {
 				'node-name' => @name,
 				'tags' => "Name=#{@name}"
 			}
 
-			return knife_ec2_flags.merge(additional_knife_flags)
+			knife_flags_hash = knife_ec2_flags.merge(additional_knife_flags)
+
+			self.validate_knife_flags(knife_flags_hash)
+
+			return knife_flags_hash
 		end
 
 		# Load the JSON and then dump it back out to ensure it's valid JSON.
@@ -30,6 +39,13 @@ class EC2Bootstrap
 		# verbose mode by removing all newlines.
 		def load_json_attributes(file_path)
 			return JSON.dump(JSON.load(File.read(file_path)))
+		end
+
+		# Ensure that all REQUIRED_EC2_FLAGS exist for this instance.
+		def validate_knife_flags(given_knife_flags)
+			set_of_required_flags = REQUIRED_KNIFE_EC2_FLAGS.to_set
+			set_of_given_flags = given_knife_flags.keys.to_set
+			raise KeyError, "Instance #{@name} is missing a required flag. Required flags are: #{REQUIRED_KNIFE_EC2_FLAGS}" unless set_of_required_flags.subset?(set_of_given_flags)
 		end
 
 		def format_knife_shell_command

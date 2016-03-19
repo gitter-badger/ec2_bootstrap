@@ -31,6 +31,11 @@ You may also want to include some form of cloud-init config. To do this, you can
 
 For any `knife_EC2_flags` values that are lists, they need to be formatted as one long string with values separated by commas. Ex: `security-group-ids: sg-12345678,sg-abcdef12`.
 
+There are two required EC2 flags: `image` and `private-ip-address`. You must include `private-ip-address` for every instance in your config file. For the `image` flag, you have two choices:
+
+1. Include the flag for every instance.
+2. Include a top-level `aws_config` section in your config file that has an array of `owner_ids`. `owner_ids` are the stringified IDs of AWS users or organizations whose images you'd like to use. Most likely this will be a list of only one item, your user or organization ID. `ec2_bootstrap` will use these `owner_ids` to search for the most recent available machine image from those owners, then will use that image when creating any instances that don't have their own `image` flag.
+
 ## Usage
 
 	$ bundle exec ec2_bootstrap -c CONFIG_FILE [options]

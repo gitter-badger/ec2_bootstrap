@@ -26,4 +26,5 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "chef", "~> 12.5"
   spec.add_dependency "knife-ec2", "~> 0.12"
+  spec.add_dependency "aws-sdk", "~> 2"
 end

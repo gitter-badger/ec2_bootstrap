@@ -1,4 +1,8 @@
 ---
+aws_config:
+    owner_ids:
+        - '123456789012'
+    region: us-east-1
 cloud_config:
   manage_etc_hosts: true
   bootcmd:
@@ -15,7 +19,6 @@ instances:
             flavor: m4.large
             iam-profile: iam-role
             identity-file: ~/.ssh/ssh_key.pem
-            image: ami-12345678
             private-ip-address: X.X.X.X
             run-list: recipe[recipe1]
             secret-file: /path/to/chef/data_bag_secret

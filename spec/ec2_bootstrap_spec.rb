@@ -2,8 +2,19 @@ require_relative 'spec_helper'
 
 describe 'EC2Bootstrap' do
 
+	let(:knife_flags) do
+		{
+			'image' => 'ami-12345678',
+			'private-ip-address' => '255.255.255.255'
+		}
+	end
+
 	let(:yaml_content) do
 		{
+			'aws_config' => {
+				'region' => 'us-west-1',
+				'owner_ids' => ['111111111111']
+			},
 			'cloud_config' => {
 				'manage_etc_hosts' => 'true',
 				'bootcmd' => ['do stuff', 'do some more stuff']
@@ -11,17 +22,17 @@ describe 'EC2Bootstrap' do
 			'instances' => [
 				{
 					'instance_name' => 'cat',
-					'knife_ec2_flags' => {},
+					'knife_ec2_flags' => knife_flags,
 					'domain' => 'cats.com'
 				},
 				{
 					'instance_name' => 'mouse',
 					'json_attributes_file' => {},
-					'knife_ec2_flags' => {}
+					'knife_ec2_flags' => knife_flags
 				},
 				{
 					'instance_name' => 'whale',
-					'knife_ec2_flags' => {}
+					'knife_ec2_flags' => knife_flags
 				}
 			]
 		}
