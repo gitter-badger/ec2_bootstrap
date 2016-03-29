@@ -1,13 +1,18 @@
 ---
-aws_config:
-    owner_ids:
-        - '123456789012'
-    region: us-east-1
 cloud_config:
-  manage_etc_hosts: true
-  bootcmd:
-    - echo "search domain.com" > /etc/resolv.conf
-    - echo "nameserver X.X.X.X" >> /etc/resolv.conf
+    manage_etc_hosts: true
+    bootcmd:
+        - echo "search domain.com" > /etc/resolv.conf
+        - echo "nameserver X.X.X.X" >> /etc/resolv.conf
+default_ami:
+    filters:
+        tag:Name:
+            - Ubuntu*
+        tag:OS:
+            - Linux
+    owners:
+        - '012345678912'
+    region: us-east-1
 instances:
     -   instance_name: foo
         domain: domain.com

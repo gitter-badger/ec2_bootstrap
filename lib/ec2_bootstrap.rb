@@ -1,6 +1,7 @@
 require 'yaml'
 require 'open3'
 require 'logger'
+require 'aws-sdk'
 
 require 'ec2_bootstrap/version'
 require 'ec2_bootstrap/instance'
@@ -9,16 +10,22 @@ class EC2Bootstrap
 
 	DEFAULT_AWS_REGION = 'us-east-1'
 
+	DEFAULT_IMAGE_FILTERS = [
+			{name: 'image-type', values: ['machine']},
+			{name: 'state', values: ['available']}
+		]
+
 	attr_accessor :cloud_config
 	attr_accessor :instances
 	attr_accessor :dryrun
+	attr_accessor :default_image_id
 
 	def initialize(config, dryrun=true, verbose=false)
 		@logger = Logger.new(STDOUT)
 		verbose ? @logger.level = Logger::DEBUG : @logger.level = Logger::INFO
 
 		@cloud_config = config['cloud_config']
-		@aws_config = config['aws_config']
+		@default_image_id = config['default_ami'] ? self.find_newest_image_id(config['default_ami']) : nil
 		@instances = self.make_instances(config['instances'])
 		@dryrun = dryrun
 	end
@@ -33,8 +40,7 @@ class EC2Bootstrap
 
 	def self.from_config_file(config_path, *args)
 		config = YAML.load(File.read(config_path))
-
-		self.from_config(config, *args)
+		return self.from_config(config, *args)
 	end
 
 	def self.validate_config(config)
@@ -42,31 +48,38 @@ class EC2Bootstrap
 		raise KeyError, "Config file is missing 'instances' key." unless instances
 		raise TypeError, "'instances' config must be an array of hashes." unless instances.is_a?(Array) && instances.first.is_a?(Hash)
 
-		if @aws_config
-			raise KeyError, "AWS config is missing required 'owner_ids' key." unless @aws_config['owner_ids']
+		if config['default_ami']
+			raise TypeError, "'default_ami' config must be a hash." unless config['default_ami'].is_a?(Hash)
 		end
 
 		return true
 	end
 
-	def find_newest_image_id(owner_ids)
-		ENV['AWS_REGION'] = @aws_config['region'] || DEFAULT_AWS_REGION
+	def find_newest_image_id(image_search_config)
+		image_search_config['filters'] = self.format_filters_from_config(image_search_config['filters']) + DEFAULT_IMAGE_FILTERS
+		images = self.fetch_eligible_images(image_search_config)
 
-		filters = [
-			{name: 'image-type', values: ['machine']},
-			{name: 'owner-id', values: owner_ids},
-			{name: 'state', values: ['available']}
-		]
+		newest_image = images.max_by(&:creation_date)
+		newest_image_id = newest_image ? newest_image.id : nil
 
-		images = Aws::EC2::Resource.new.images({filters: filters})
-		newest_image = images.max_by {|i| i.creation_date}
-		return newest_image.id
+		@logger.warn("Couldn't find any AMIs matching your specifications. Can't set a default AMI.") unless newest_image_id
+		@logger.debug("Using #{newest_image_id} as the default AMI.") if newest_image_id
+
+		return newest_image_id
+	end
+
+	def format_filters_from_config(filters_hash)
+		filters_array = filters_hash.to_a.map {|filter| {name: filter.first, values: filter.last}}
+		return filters_array
+	end
+
+	def fetch_eligible_images(image_search_config)
+		ENV['AWS_REGION'] = image_search_config.delete('region') || DEFAULT_AWS_REGION
+		return Aws::EC2::Resource.new.images(image_search_config)
 	end
 
 	def make_instances(instances_config)
-		additional_args = {logger: @logger}
-		additional_args[:image] = self.find_newest_image_id(@aws_config['owner_ids']) if @aws_config
-
+		additional_args = {logger: @logger, image: @default_image_id}
 		return instances_config.map {|i| self.instance_class.new(i.merge(additional_args))}
 	end
 

@@ -1,5 +1,4 @@
 require 'json'
-require 'aws-sdk'
 
 class EC2Bootstrap
 	class Instance
