@@ -41,11 +41,10 @@ class EC2Bootstrap
 			return JSON.dump(JSON.load(File.read(file_path)))
 		end
 
-		# Ensure that all REQUIRED_EC2_FLAGS exist for this instance.
+		# Ensure that all REQUIRED_EC2_FLAGS have values other than nil.
 		def validate_knife_flags(given_knife_flags)
-			set_of_required_flags = REQUIRED_KNIFE_EC2_FLAGS.to_set
-			set_of_given_flags = given_knife_flags.keys.to_set
-			raise KeyError, "Instance #{@name} is missing a required flag. Required flags are: #{REQUIRED_KNIFE_EC2_FLAGS}" unless set_of_required_flags.subset?(set_of_given_flags)
+			missing_flags = REQUIRED_KNIFE_EC2_FLAGS.select {|flag| given_knife_flags[flag].nil? }
+			raise KeyError, "Instance #{@name} is missing one or more required flags. Missing flags are: #{missing_flags}." unless missing_flags.empty?
 		end
 
 		def format_knife_shell_command
