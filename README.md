@@ -20,21 +20,29 @@ Or install it yourself as:
 
 ## Configuration
 
-Requires AWS credentials in a format compatible with the [EC2 Knife plugin](https://github.com/chef/knife-ec2/blob/master/README.md).
+This is a simple gem that wraps the functionality of the [EC2 Knife plugin](https://github.com/chef/knife-ec2/blob/master/README.md) and the [aws-sdk gem](https://github.com/aws/aws-sdk-ruby). As a result, there is very little code and a very fussy config file.
 
-Also requires a YAML config file that looks like the example `config.example.yml`. The config file must include a top-level `nodes` key whose value is an array of hashes. Each node must include the keys `node_name` and `knife_ec2_flags`.
+### Required Config
+
+Requires AWS credentials in a format compatible with the EC2 Knife plugin.
+
+Also requires a YAML config file that looks like the example `config.example.yml`. The config file must include a top-level `instances` key whose value is an array of hashes. Each individual instance must include the keys `instance_name` and `knife_ec2_flags`, and a `private-ip-address` key nested within `knife_ec2_flags`. Each instance also requires the `image` flag, but if you include a `default_ami` section within your config, `ec2_bootstrap` will set a default AMI so you don't need to define an image for each instance (see "Optional Config" below for more info).
+
+For any `knife_ec2_flags` values that are lists, they need to be formatted as one long string with values separated by commas. Ex: `security-group-ids: sg-12345678,sg-abcdef12`.
+
+### Optional Config
 
 You may also want to include some form of cloud-init config. To do this, you can do one of two things:
 
-1. Include a top-level `cloud_config` key with the contents you'd like in the cloud config files used for each node, and ec2_bootstrap will generate separate config files for each node that all include the node's hostname and fqdn.
-2. If you'd prefer to write your own cloud config files, you can include the cloud config's path in a `user-data` key in the node's `knife_ec2_flags` hash.
+1. Include the cloud config's path in a `user-data` key in the `knife_ec2_flags` hash for every instance.
+2. Include a top-level `cloud_config` key with the contents you'd like in the cloud config files used for each node. `ec2_bootstrap` will use this to generate separate config files for each node that all include the node's hostname and fqdn. This will be used as the default cloud-init config for any instances that don't have their own defined.
 
-For any `knife_EC2_flags` values that are lists, they need to be formatted as one long string with values separated by commas. Ex: `security-group-ids: sg-12345678,sg-abcdef12`.
-
-There are two required EC2 flags: `image` and `private-ip-address`. You must include `private-ip-address` for every instance in your config file. For the `image` flag, you have two choices:
+For the `image` flag within an instance's `knife_ec2_flags`, you have two choices:
 
 1. Include the flag for every instance.
-2. Include a top-level `aws_config` section in your config file that has an array of `owner_ids`. `owner_ids` are the stringified IDs of AWS users or organizations whose images you'd like to use. Most likely this will be a list of only one item, your user or organization ID. `ec2_bootstrap` will use these `owner_ids` to search for the most recent available machine image from those owners, then will use that image when creating any instances that don't have their own `image` flag.
+2. Include a top-level `default_ami` hash. `ec2_bootstrap` will use the parameters within `default_ami` to search for the most recent available AMI that matches your criteria, then will use that image when as the default for any instances that don't have their own `image` field defined.
+
+You can add any of the options listed in [Amazon's aws-sdk gem docs](http://docs.aws.amazon.com/sdkforruby/api/Aws/EC2/Resource.html#images-instance_method) to search for AMIs through `ec2_bootstrap`. If you don't include a `region` key, `ec2_bootstrap` will default to us-east-1. If you choose to include `filters`, it should be a hash where all values are arrays. All other keys besides `region` and `filters` should also have arrays as values.
 
 ## Usage
 
