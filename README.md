@@ -26,7 +26,9 @@ This is a simple gem that wraps the functionality of the [EC2 Knife plugin](http
 
 Requires AWS credentials in a format compatible with the EC2 Knife plugin.
 
-Also requires a YAML config file that looks like the example `config.example.yml`. The config file must include a top-level `instances` key whose value is an array of hashes. Each individual instance must include the keys `instance_name` and `knife_ec2_flags`, and a `private-ip-address` key nested within `knife_ec2_flags`. Each instance also requires the `image` flag, but if you include a `default_ami` section within your config, `ec2_bootstrap` will set a default AMI so you don't need to define an image for each instance (see "Optional Config" below for more info).
+Also requires a YAML config file that looks like the example `config.example.yml`. The config file must include a top-level `instances` key whose value is an array of hashes. Each individual instance must include the keys `instance_name` and `knife_ec2_flags`. The latter is a hash of flags that are passed directly to Knife EC2. The `private-ip-address` flag is required. Each instance also requires the `image` flag, but if you include a `default_ami` section at the top level of your config, `ec2_bootstrap` will set a default AMI so you don't need to define an image for each instance (see "Optional Config" below for more info). To check what flags are currently accepted by Knife EC2, run:
+
+	$ knife ec2 server create --help
 
 For any `knife_ec2_flags` values that are lists, they need to be formatted as one long string with values separated by commas. Ex: `security-group-ids: sg-12345678,sg-abcdef12`.
 
