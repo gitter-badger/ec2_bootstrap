@@ -44,6 +44,7 @@ class EC2Bootstrap
 		def validate_knife_flags(given_knife_flags)
 			missing_flags = REQUIRED_KNIFE_EC2_FLAGS.select {|flag| given_knife_flags[flag].nil? }
 			raise KeyError, "Instance #{@name} is missing one or more required flags. Missing flags are: #{missing_flags}." unless missing_flags.empty?
+			return true
 		end
 
 		def format_knife_shell_command
