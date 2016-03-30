@@ -62,8 +62,8 @@ class EC2Bootstrap
 		newest_image = images.max_by(&:creation_date)
 		newest_image_id = newest_image ? newest_image.id : nil
 
-		@logger.warn("Couldn't find any AMIs matching your specifications. Can't set a default AMI.") unless newest_image_id
-		@logger.debug("Using #{newest_image_id} as the default AMI.") if newest_image_id
+		@logger.error("Couldn't find any AMIs matching your specifications. Can't set a default AMI.") unless newest_image_id
+		@logger.info("Using #{newest_image_id} as the default AMI.") if newest_image_id
 
 		return newest_image_id
 	end
@@ -88,7 +88,7 @@ class EC2Bootstrap
 	end
 
 	def create_instances
-		@logger.debug("This was a dry run. No EC2 instances were created.") if @dryrun
+		@logger.info("This was a dry run. No EC2 instances were created.") if @dryrun
 
 		@instances.each do |instance|
 			@logger.debug("Instance name: #{instance.name}")

@@ -64,7 +64,7 @@ class EC2Bootstrap
 				@logger.debug(msg)
 			else
 				self.write_cloud_config_to_file(cloud_config_path, formatted_cloud_config)
-				@logger.debug("Wrote cloud config to #{cloud_config_path}.")
+				@logger.info("Wrote cloud config to #{cloud_config_path}.")
 			end
 
 			@knife_ec2_flags['user-data'] = cloud_config_path
