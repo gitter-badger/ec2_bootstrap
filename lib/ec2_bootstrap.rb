@@ -1,19 +1,12 @@
 require 'yaml'
 require 'open3'
 require 'logger'
-require 'aws-sdk'
 
 require 'ec2_bootstrap/version'
 require 'ec2_bootstrap/instance'
+require 'ec2_bootstrap/ami'
 
 class EC2Bootstrap
-
-	DEFAULT_AWS_REGION = 'us-east-1'
-
-	DEFAULT_IMAGE_FILTERS = [
-			{name: 'image-type', values: ['machine']},
-			{name: 'state', values: ['available']}
-		]
 
 	attr_accessor :cloud_config
 	attr_accessor :instances
@@ -21,11 +14,9 @@ class EC2Bootstrap
 	attr_accessor :default_image_id
 
 	def initialize(config, dryrun=true, verbose=false)
-		@logger = Logger.new(STDOUT)
-		verbose ? @logger.level = Logger::DEBUG : @logger.level = Logger::INFO
-
+		@logger = self.new_logger(verbose)
 		@cloud_config = config['cloud_config']
-		@default_image_id = config['default_ami'] ? self.find_newest_image_id(config['default_ami']) : nil
+		@default_image_id = ami_class.from_config(config['default_ami'], @logger).find_newest_image_id
 		@instances = self.make_instances(config['instances'])
 		@dryrun = dryrun
 	end
@@ -55,27 +46,14 @@ class EC2Bootstrap
 		return true
 	end
 
-	def find_newest_image_id(image_search_config)
-		image_search_config['filters'] = self.format_filters_from_config(image_search_config['filters']) + DEFAULT_IMAGE_FILTERS
-		images = self.fetch_eligible_images(image_search_config)
-
-		newest_image = images.max_by(&:creation_date)
-		newest_image_id = newest_image ? newest_image.id : nil
-
-		@logger.error("Couldn't find any AMIs matching your specifications. Can't set a default AMI.") unless newest_image_id
-		@logger.info("Using #{newest_image_id} as the default AMI.") if newest_image_id
-
-		return newest_image_id
+	def new_logger(verbose)
+		logger = Logger.new(STDOUT)
+		verbose ? logger.level = Logger::DEBUG : logger.level = Logger::INFO
+		return logger
 	end
 
-	def format_filters_from_config(filters_hash)
-		filters_array = filters_hash.to_a.map {|filter| {name: filter.first, values: filter.last}}
-		return filters_array
-	end
-
-	def fetch_eligible_images(image_search_config)
-		ENV['AWS_REGION'] = image_search_config.delete('region') || DEFAULT_AWS_REGION
-		return Aws::EC2::Resource.new.images(image_search_config)
+	def ami_class
+		return AMI
 	end
 
 	def make_instances(instances_config)

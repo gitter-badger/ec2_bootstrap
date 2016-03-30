@@ -11,9 +11,9 @@ describe 'EC2Bootstrap' do
 
 	let(:yaml_content) do
 		{
-			'aws_config' => {
+			'default_ami' => {
 				'region' => 'us-west-1',
-				'owner_ids' => ['111111111111']
+				'owners' => ['111111111111']
 			},
 			'cloud_config' => {
 				'manage_etc_hosts' => 'true',
@@ -52,6 +52,12 @@ describe 'EC2Bootstrap' do
 			expect {EC2BootstrapMock.from_config(yaml, false)}.to raise_error(TypeError)
 		end
 
+		it "raises a TypeError if 'default_ami' exists but is not a hash" do
+			yaml = yaml_content.merge({'default_ami' => ['an', 'array']})
+
+			expect {EC2BootstrapMock.from_config(yaml, false)}.to raise_error(TypeError)
+		end
+
 		it 'loads successfully if the yaml content is properly formatted' do
 			bootstrap = EC2BootstrapMock.from_config(yaml_content, false)
 
@@ -63,43 +69,41 @@ describe 'EC2Bootstrap' do
 
 	end
 
-	context 'creating instances' do
-		context 'generating cloud config' do
+	context 'generating cloud config' do
 
-			it "doesn't generate cloud config if it wasn't included at the top level of the yaml config" do
-				yaml = yaml_content.reject {|k,v| k == 'cloud_config'}
-				bootstrap = EC2BootstrapMock.from_config(yaml, false)
-				instance = bootstrap.instances.first
+		it "doesn't generate cloud config if it wasn't included at the top level of the yaml config" do
+			yaml = yaml_content.reject {|k,v| k == 'cloud_config'}
+			bootstrap = EC2BootstrapMock.from_config(yaml, false)
+			instance = bootstrap.instances.first
 
-				expect(instance).to_not receive(:generate_cloud_config)
-				bootstrap.create_instances
-			end
-
-			it 'generates cloud config if it was included at the top level in the yaml config' do
-				bootstrap = EC2BootstrapMock.from_config(yaml_content, false)
-				instance = bootstrap.instances.first
-
-				expect(instance).to receive(:generate_cloud_config)
-				bootstrap.create_instances
-			end
-
+			expect(instance).to_not receive(:generate_cloud_config)
+			bootstrap.create_instances
 		end
 
-		context 'shelling out knife EC2 command' do
+		it 'generates cloud config if it was included at the top level in the yaml config' do
+			bootstrap = EC2BootstrapMock.from_config(yaml_content, false)
+			instance = bootstrap.instances.first
 
-			it "doesn't shell out if it's a dryrun" do
-				bootstrap = EC2BootstrapMock.from_config(yaml_content, true)
+			expect(instance).to receive(:generate_cloud_config)
+			bootstrap.create_instances
+		end
 
-				expect(bootstrap).to_not receive(:shell_out_command)
-				bootstrap.create_instances
-			end
+	end
 
-			it "shells out if it's not a dryrun" do
-				bootstrap = EC2BootstrapMock.from_config(yaml_content, false)
+	context 'shelling out knife EC2 command' do
 
-				expect(bootstrap).to receive(:shell_out_command)
-				bootstrap.create_instances
-			end
+		it "doesn't shell out if it's a dryrun" do
+			bootstrap = EC2BootstrapMock.from_config(yaml_content, true)
+
+			expect(bootstrap).to_not receive(:shell_out_command)
+			bootstrap.create_instances
+		end
+
+		it "shells out if it's not a dryrun" do
+			bootstrap = EC2BootstrapMock.from_config(yaml_content, false)
+
+			expect(bootstrap).to receive(:shell_out_command)
+			bootstrap.create_instances
 		end
 	end
 
