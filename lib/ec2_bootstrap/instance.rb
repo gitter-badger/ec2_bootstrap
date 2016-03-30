@@ -61,7 +61,7 @@ class EC2Bootstrap
 
 			if dryrun
 				msg = "If this weren't a dry run, I would write the following contents to #{cloud_config_path}:\n#{formatted_cloud_config}"
-				@logger.debug(msg)
+				@logger.info(msg)
 			else
 				self.write_cloud_config_to_file(cloud_config_path, formatted_cloud_config)
 				@logger.info("Wrote cloud config to #{cloud_config_path}.")
