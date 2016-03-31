@@ -27,7 +27,8 @@ describe 'EC2Bootstrap::Instance' do
 			domain: 'chocolate.muffins.com',
 			knife_ec2_flags: knife_flags_hash,
 			logger: logger,
-			image: default_image
+			image: default_image,
+			dryrun: true
 		}
 	end
 
@@ -53,14 +54,28 @@ describe 'EC2Bootstrap::Instance' do
 
 	end
 
-	it 'can generate its own cloud config' do
-		cloud_config = {
-			'manage_etc_hosts': 'true',
-			'bootcmd': ['do stuff', 'do some more stuff']
-		}
+	context 'generating cloud config' do
 
-		instance = EC2Bootstrap::InstanceMock.new(instance_args)
-		expect(instance.generate_cloud_config(cloud_config, false)).to eq("cloud_config_#{instance.name}.txt")
+		let(:default_cloud_config) do
+			{
+				'manage_etc_hosts': 'true',
+				'bootcmd': ['do stuff', 'do some more stuff']
+			}
+		end
+
+		it "generates a cloud config file if one isn't set and default cloud config exists" do
+			instance = EC2Bootstrap::InstanceMock.new(instance_args.merge({cloud_config: default_cloud_config}))
+			expect(instance.knife_ec2_flags['user-data']).to be_a(String)
+		end
+
+		it "doesn't override existing cloud config with the default" do
+			cloud_init_file = 'my_custom_cloud_config.txt'
+			knife_flags_hash_with_user_data_flag = knife_flags_hash.merge({'user-data' => cloud_init_file})
+			instance_args_with_user_data_flag = instance_args.merge({knife_ec2_flags: knife_flags_hash_with_user_data_flag, cloud_config: default_cloud_config})
+			instance = EC2Bootstrap::InstanceMock.new(instance_args_with_user_data_flag)
+			expect(instance.knife_ec2_flags['user-data']).to eq(cloud_init_file)
+		end
+
 	end
 
 	it 'properly formats the knife shell command' do

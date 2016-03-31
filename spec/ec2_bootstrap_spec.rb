@@ -62,30 +62,9 @@ describe 'EC2Bootstrap' do
 			bootstrap = EC2BootstrapMock.from_config(yaml_content, false)
 
 			expect(bootstrap.cloud_config).to eq(yaml_content['cloud_config'])
-			expect(bootstrap.instances).to be_an(Array)
-			expect(bootstrap.instances.first).to be_a(EC2Bootstrap::InstanceMock)
+			expect(bootstrap.instances_config).to eq(yaml_content['instances'])
+			expect(bootstrap.default_ami_config).to eq(yaml_content['default_ami'])
 			expect(bootstrap.dryrun).to be_falsey
-		end
-
-	end
-
-	context 'generating cloud config' do
-
-		it "doesn't generate cloud config if it wasn't included at the top level of the yaml config" do
-			yaml = yaml_content.reject {|k,v| k == 'cloud_config'}
-			bootstrap = EC2BootstrapMock.from_config(yaml, false)
-			instance = bootstrap.instances.first
-
-			expect(instance).to_not receive(:generate_cloud_config)
-			bootstrap.create_instances
-		end
-
-		it 'generates cloud config if it was included at the top level in the yaml config' do
-			bootstrap = EC2BootstrapMock.from_config(yaml_content, false)
-			instance = bootstrap.instances.first
-
-			expect(instance).to receive(:generate_cloud_config)
-			bootstrap.create_instances
 		end
 
 	end

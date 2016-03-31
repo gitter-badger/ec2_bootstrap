@@ -8,17 +8,17 @@ require 'ec2_bootstrap/ami'
 
 class EC2Bootstrap
 
-	attr_accessor :cloud_config
-	attr_accessor :instances
 	attr_accessor :dryrun
-	attr_accessor :default_image_id
+	attr_accessor :cloud_config
+	attr_accessor :instances_config
+	attr_accessor :default_ami_config
 
 	def initialize(config, dryrun=true, verbose=false)
 		@logger = self.new_logger(verbose)
-		@cloud_config = config['cloud_config']
-		@default_image_id = ami_class.from_config(config['default_ami'], @logger).find_newest_image_id
-		@instances = self.make_instances(config['instances'])
 		@dryrun = dryrun
+		@cloud_config = config['cloud_config']
+		@instances_config = config['instances']
+		@default_ami_config = config['default_ami']
 	end
 
 	def self.from_config(config, *args)
@@ -56,9 +56,9 @@ class EC2Bootstrap
 		return AMI
 	end
 
-	def make_instances(instances_config)
-		additional_args = {logger: @logger, image: @default_image_id}
-		return instances_config.map {|i| self.instance_class.new(i.merge(additional_args))}
+	def make_instances(default_image_id)
+		generic_args = {logger: @logger, image: default_image_id, dryrun: @dryrun, cloud_config: @cloud_config}
+		return @instances_config.map {|i| self.instance_class.new(i.merge(generic_args))}
 	end
 
 	def instance_class
@@ -66,15 +66,14 @@ class EC2Bootstrap
 	end
 
 	def create_instances
-		@logger.info("This was a dry run. No EC2 instances were created.") if @dryrun
+		@logger.info("This was a dry run. No EC2 instances were  created.") if @dryrun
 
-		@instances.each do |instance|
-			@logger.debug("Instance name: #{instance.name}")
+		default_image_id = @default_ami_config ? ami_class.from_config(@default_ami_config, @logger).find_newest_image_id : nil
+		instances = self.make_instances(default_image_id)
 
-			instance.generate_cloud_config(@cloud_config, @dryrun) if @cloud_config
-
+		instances.each do |instance|
 			knife_shell_command = instance.format_knife_shell_command
-			@logger.debug("Knife shell command:\n#{knife_shell_command}")
+			@logger.debug("Knife shell command for #{instance.name}:\n#{knife_shell_command}")
 			
 			unless @dryrun
 				status = self.shell_out_command(knife_shell_command)
