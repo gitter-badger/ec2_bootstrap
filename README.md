@@ -39,6 +39,8 @@ You may also want to include some form of cloud-init config. To do this, you can
 1. Include the cloud config's path in a `user-data` key in the `knife_ec2_flags` hash for every instance.
 2. Include a top-level `cloud_config` key with the contents you'd like in the cloud config files used for each node. `ec2_bootstrap` will use this to generate separate config files for each node that all include the node's hostname and fqdn. This will be used as the default cloud-init config for any instances that don't have their own defined.
 
+The Knife EC2 plugin does not currently support passing in a JSON attributes file. As a result, if you'd like to pass in a JSON attributes file without having to parse it yourself, you can include the `json_attributes_file` key in an instance's hash. Alternatively, you can include the JSON directly by adding it under the `json-attributes` key in the instance's `knife_ec2_flags`. The `json-attributes` key in `knife_ec2_flags` takes precedence over the `json_attributes_file` key.
+
 For the `image` flag within an instance's `knife_ec2_flags`, you have two choices:
 
 1. Include the flag for every instance.
